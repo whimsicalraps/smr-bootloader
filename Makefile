@@ -1,130 +1,146 @@
-BINARYNAME = bootloader
+TARGET=boot
+EXECUTABLE=boot.elf
 
-COMBO = combo
-MAINAPP_HEX = ../JF3-test/main.hex
+CUBE=../STM32_Cube_F7/Drivers
+HALS=$(CUBE)/STM32F7xx_HAL_Driver/Src
+WRLIB=../../wrLib
+WRDSP=../../wrDsp
 
-STARTUP = startup_stm32f4xx.s
-SYSTEM = system_stm32f4xx.c
-#LOADFILE = stm32f427.ld
-LOADFILE = stm32_boot.ld
+CC=arm-none-eabi-gcc
+CXX= arm-none-eabi-g++
+LD=arm-none-eabi-gcc
+AR=arm-none-eabi-ar
+AS=arm-none-eabi-as
+CP=arm-none-eabi-objcopy
+OBJDUMP=arm-none-eabi-objdump
 
-F_CPU          = 180000000L
+# BIN=$(CP) -O ihex 
+BIN = $(TARGET).bin
 
-DEVICE = stm32/device
-CORE = stm32/core
-PERIPH = stm32/periph
+DEFS = -DUSE_STDPERIPH_DRIVER -DSTM32F7XX -DARM_MATH_CM7 -DHSE_VALUE=8000000
+STARTUP = $(CUBE)/CMSIS/Device/ST/STM32F7xx/Source/Templates/gcc/startup_stm32f765xx.s
 
-BUILDDIR = build
+MCFLAGS = -march=armv7e-m -mthumb 
 
-SOURCES += $(wildcard $(PERIPH)/src/*.c)
-SOURCES += $(DEVICE)/src/$(STARTUP)
-SOURCES += $(DEVICE)/src/$(SYSTEM)
-SOURCES += $(wildcard *.cc)
-SOURCES += $(wildcard *.c)
-#SOURCES += $(STMLIB)/system/bootloader_utils.cc
-#SOURCES += $(STMLIB)/system/system_clock.cc
+STM32_INCLUDES = \
+	-I$(WRLIB)/ \
+	-I$(WRDSP)/ \
+	-I$(CUBE)/CMSIS/Device/ST/STM32F7xx/Include/ \
+	-I$(CUBE)/CMSIS/Include/ \
+	-I$(CUBE)/STM32F7xx_HAL_Driver/Inc/ \
+	-Iusbd/ \
+	-I$(USBD)/Class/DFU/Inc/ \
+	-I$(USBD)/Core/Inc/ \
+	-I../stm-audio-bootloader/fsk/ \
+	-I../stmlib/system/ \
+	-I$(CUBE)/BSP/STM32F769I-Discovery/ \
 
-OBJECTS = $(addprefix $(BUILDDIR)/, $(addsuffix .o, $(basename $(SOURCES))))
+OPTIMIZE       = -Os
 
-OBJECTS += ../stmlib/system/bootloader_utils.o ../stmlib/system/system_clock.o ../stm-audio-bootloader/fsk/packet_decoder.o
-
-
-INCLUDES += -I$(DEVICE)/include \
-			-I$(CORE)/include \
-			-I$(PERIPH)/include \
-			-I\
-
-ELF = $(BUILDDIR)/$(BINARYNAME).elf
-HEX = $(BUILDDIR)/$(BINARYNAME).hex
-BIN = $(BUILDDIR)/$(BINARYNAME).bin
-
-ARCH = arm-none-eabi
-CC = $(ARCH)-gcc
-CXX = $(ARCH)-g++
-LD = $(ARCH)-ld
-AS = $(ARCH)-as
-OBJCPY = $(ARCH)-objcopy
-OBJDMP = $(ARCH)-objdump
-GDB = $(ARCH)-gdb
-FLASH = st-flash
-
-ARCHFLAGS = -mlittle-endian -mthumb -mthumb-interwork -mcpu=cortex-m4 -mfloat-abi=soft -mfpu=fpv4-sp-d16 
-
-CFLAGS = -g2 -O0 $(ARCHFLAGS) 
-CFLAGS +=  -I. -DARM_MATH_CM4 -D'__FPU_PRESENT=1' -DF_CPU=$(F_CPU) -DSTM32F4XX   
-CFLAGS += -DUSE_STDPERIPH_DRIVER  $(INCLUDES) 
-CFLAGS +=  -fsingle-precision-constant -Wdouble-promotion 	
+CFLAGS += $(MCFLAGS)
+CFLAGS += $(OPTIMIZE)
+CFLAGS += $(DEFS) -I. -I./ $(STM32_INCLUDES)
+CFLAGS += -fsingle-precision-constant -Wdouble-promotion
 
 CPPFLAGS = $(CFLAGS) -fno-exceptions
 
-#AFLAGS  = -mlittle-endian -mthumb -mcpu=cortex-m4 
-AFLAGS  = $(ARCHFLAGS)
+C99 = -std=c99
 
-LDSCRIPT = $(DEVICE)/$(LOADFILE)
-#LFLAGS  = -Map $(BINARYNAME).map -nostartfiles -T $(LDSCRIPT)
-LFLAGS  = -Wl,-Map=$(BUILDDIR)/$(BINARYNAME).map -Wl,--gc-sections \
-	-T $(LDSCRIPT) \
-	-I.
+R ?= 0
+ifeq ($(R), 1)
+    CFLAGS += -DRELEASE
+else
+    CFLAGS += -DDEBUG
+endif
+
+LDFLAGS = -Wl,-T,stm32_boot.ld
+LIBS = -lm -lc -lnosys
+
+SRC = stm32f7xx_it.c \
+	system_stm32f7xx.c \
+	stm32f7xx_hal_msp.c \
+	$(HALS)/stm32f7xx_hal.c \
+	$(HALS)/stm32f7xx_hal_cortex.c \
+	$(HALS)/stm32f7xx_hal_rcc.c \
+	$(HALS)/stm32f7xx_hal_rcc_ex.c \
+	$(HALS)/stm32f7xx_hal_flash.c \
+	$(HALS)/stm32f7xx_hal_flash_ex.c \
+	$(HALS)/stm32f7xx_hal_gpio.c \
+	$(HALS)/stm32f7xx_hal_dma.c \
+	$(HALS)/stm32f7xx_hal_dma2d.c \
+	$(HALS)/stm32f7xx_hal_pwr.c \
+	$(HALS)/stm32f7xx_hal_pwr_ex.c \
+	$(HALS)/stm32f7xx_hal_pcd.c \
+	$(HALS)/stm32f7xx_hal_pcd_ex.c \
+	$(HALS)/stm32f7xx_hal_sai.c \
+	$(HALS)/stm32f7xx_hal_sd.c \
+	$(HALS)/stm32f7xx_hal_usart.c \
+	$(HALS)/stm32f7xx_ll_fmc.c \
+	$(HALS)/stm32f7xx_ll_sdmmc.c \
+	$(HALS)/stm32f7xx_ll_usb.c \
+	$(wildcard lib/*.c) \
+	$(WRLIB)/str_buffer.c \
+	$(WRLIB)/wrMath.c \
 
 
-all: Makefile $(BIN) $(HEX)
+OBJDIR = .
+OBJS = $(SRC:%.c=$(OBJDIR)/%.o)
+OBJS += Startup.o
+OBJS += system.o ../stmlib/system/system_clock.o ../stm-audio-bootloader/fsk/packet_decoder.o bootloader.o
 
-echox:
-	echo $(OBJECTS)
-	
-$(BIN): $(ELF)
-	$(OBJCPY) -O binary $< $@
-	$(OBJDMP) -x --syms $< > $(addsuffix .dmp, $(basename $<))
-	ls -l $@ $<
+# C dependencies echoed into Makefile
+DEP = $(OBJS:.o=.d)  # one dependency file for each source
 
-$(HEX): $(ELF)
-	$(OBJCPY) --output-target=ihex $< $@
 
-$(ELF): $(OBJECTS)
-#	$(LD) $(LFLAGS) -o $@ $(OBJECTS)
-	$(CC) $(LFLAGS) -o $@ $(OBJECTS)
+all: $(TARGET).hex $(BIN)
 
-$(BUILDDIR)/%.o: %.cc
-	mkdir -p $(dir $@)
-	$(CXX) -c $(CPPFLAGS) $< -o $@
+# include all DEP files in the makefile
+# will rebuild elements if dependent C headers are changed
+-include $(DEP)
 
-$(BUILDDIR)/%.o: %.c
-	mkdir -p $(dir $@)
-#	$(CC) -c $(CFLAGS) $< -o $@
-	$(CC) $(CFLAGS) -std=c99 -c -o $@ $<
+$(TARGET).hex: $(EXECUTABLE)
+	@$(CP) -O ihex $^ $@
 
-$(BUILDDIR)/%.o: %.s
-	mkdir -p $(dir $@)
-	$(AS) $(AFLAGS) $< -o $@ > $(addprefix $(BUILDDIR)/, $(addsuffix .lst, $(basename $<)))
+$(EXECUTABLE): $(OBJS)
+	@$(LD) -g $(MCFLAGS) $(LDFLAGS) $(OBJS) $(LIBS) -o $@
+	@echo "linked:       $@"
+	@$(OBJDUMP) --disassemble $@ > $@.lst
+	@echo "disassembly:  $@.lst"
 
+$(BIN): $(EXECUTABLE)
+	@$(CP) -O binary $< $@
+	@echo "binary:       $@"
+	@$(OBJDUMP) -x --syms $< > $(addsuffix .dmp, $(basename $<))
+	@echo "symbol table: $@.dmp"
+	@echo "Release: "$(R)
+	- @stat -x $(TARGET).bin | grep 'Size'
+	@echo "        ^ must be less than 64kB (65,536)"
 
 flash: $(BIN)
-	$(FLASH) write $(BIN) 0x08000000
+	st-flash write $(BIN) 0x08000000
 
-combo_flash: combo
-	$(FLASH) write $(COMBO).bin 0x08000000
+%.o: %.c
+	@$(CC) -ggdb $(CFLAGS) $(C99) -c $< -o $@
+	@echo $@
 
-combo: $(COMBO).bin
+%.o: %.cc
+	@$(CXX) -c $(CPPFLAGS) $< -o $@
+	@echo $@
 
-$(COMBO).bin: $(HEX)
-	cat  $(MAINAPP_HEX) $(HEX) | \
-	awk -f ../stmlib/programming/merge_hex.awk > $(COMBO).hex
-	$(OBJCPY) -I ihex -O binary $(COMBO).hex $(COMBO).bin
+%.d: %.c
+	@$(CC) $(CFLAGS) $< -MM -MT $(@:.d=.o) >$@
 
+%.s: %.c
+	@$(CC) -ggdb $(CFLAGS) -S $< -o $@
+
+Startup.o: $(STARTUP)
+	@$(CC) $(CFLAGS) $(C99) -c $< -o $@
+	@echo $@
+
+erase:
+	st-flash erase
 
 clean:
-	rm -rf build
-	
-wav: fsk-wav
-
-qpsk-wav: $(BIN)
-	cd .. && python stm-audio-bootloader/qpsk/encoder.py \
-		-t stm32f4 -s 48000 -b 12000 -c 6000 -p 256 \
-		SMR/$(BIN)
-
-
-fsk-wav: $(BIN)
-	cd .. && python stm-audio-bootloader/fsk/encoder.py \
-		-s 48000 -b 16 -n 8 -z 4 -p 256 -g 16384 -k 1100 \
-		SMR/$(BIN)
-	
+	@rm -f Startup.lst $(TARGET).elf.lst $(OBJS) $(AUTOGEN) \
+	$(TARGET).bin  $(TARGET).out  $(TARGET).hex \
+	$(TARGET).map  $(TARGET).dmp  $(EXECUTABLE) $(DEP)

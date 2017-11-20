@@ -32,7 +32,7 @@
 #define SYSTEM_H_
 
 extern "C" {
-#include "stm32f4xx.h"
+#include <stm32f7xx.h>
 }
 
 #include "../stmlib/stmlib.h"

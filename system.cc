@@ -33,16 +33,16 @@
 namespace driver_system {
 
 void System::Init(bool application) {
-	SystemInit();
+	// SystemInit();
 
 	if (application) {
-		NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x8000);
+		// NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x8000);
 	}
 
 }
 
 void System::StartTimers() {
-	SysTick_Config(F_CPU / 1000);
+	// SysTick_Config(F_CPU / 1000);
 }
 
 }  
