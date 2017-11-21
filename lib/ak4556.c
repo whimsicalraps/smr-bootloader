@@ -1,8 +1,8 @@
 #include "ak4556.h"
-#include "dsp_block.h"
 #include "debug_hw.h"
 #include "debug_usart.h"
 #include <stm32f7xx_hal.h>
+#include "bootloader.h"
 
 // private structs & vars
 SAI_HandleTypeDef       SaiHandle;
@@ -97,14 +97,16 @@ void ak4556_Init( uint32_t s_rate )
 	if( HAL_OK != HAL_SAI_Init(&SaiHandle2) ){
 		Debug_USART_printf("SAI failed init");
 	}
-
 	// Enable SAI to generate clock used by audio driver
 	__HAL_SAI_ENABLE(&SaiHandle2); // adc before dac
 	__HAL_SAI_ENABLE(&SaiHandle);
 
 	// Reset codec
 	HAL_GPIO_WritePin(AUDIO_SAI_RESET_GPIO_PORT, AUDIO_SAI_RESET_PIN, GPIO_PIN_RESET);
-	HAL_Delay(1);
+	register unsigned int i; // wait a little while
+	for( i = 0; i < 1000; ++i ){
+		__asm__ __volatile__ ("nop\n\t":::"memory");
+	}
 	HAL_GPIO_WritePin(AUDIO_SAI_RESET_GPIO_PORT, AUDIO_SAI_RESET_PIN, GPIO_PIN_SET);
 }
 
@@ -190,10 +192,6 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef *hsai)
 		if( HAL_OK != HAL_DMA_Init(&hSaiDma) ){
 			Debug_USART_printf("dma1 failed to init");
 		}
-
-		// HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0x02, 0);
-		// HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
-		
 	} else { // BLOCK B
 		AUDIO_SAI_B_CLK_ENABLE(); // RCC
 		
@@ -244,10 +242,8 @@ void DMA2_Stream5_IRQHandler(void)
 	// essentially triggers below callbacks
 	HAL_DMA_IRQHandler(SaiHandle2.hdmarx);
 }
-
 void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 {
-	// Debug_USART_printf("txh\n\r");
 	Debug_HW_set(bm_1, 1);
 	Debug_HW_set(led_x, 1);
 	DSP_Block_Process(&inBuff[0], &outBuff[0], DSP_BLOCK_SIZE);
@@ -257,7 +253,6 @@ void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 
 void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai)
 {
-	// Debug_USART_printf("txc\n\r");
 	Debug_HW_set(bm_1, 1);
 	Debug_HW_set(led_x, 1);
 	DSP_Block_Process(&inBuff[DSP_BLOCK_SIZE], &outBuff[DSP_BLOCK_SIZE], DSP_BLOCK_SIZE);

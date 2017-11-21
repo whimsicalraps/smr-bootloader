@@ -28,6 +28,12 @@ void Debug_HW_Init( void )
 	HAL_GPIO_Init( DBG_LED_GPIO, &gpio );
 }
 
+void Debug_HW_Deinit( void )
+{
+	DBG_METER_GPIO_RCC_D();
+	DBG_LED_GPIO_RCC_D();
+}
+
 const uint32_t ch[4] = { DBG_METER_BM_0
                        , DBG_METER_BM_1
 					   , DBG_LED_X

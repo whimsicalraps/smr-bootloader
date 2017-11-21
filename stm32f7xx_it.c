@@ -38,7 +38,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-// #include "main.h"
+#include "stm32f7xx_hal.h"
 #include "stm32f7xx_it.h"
    
 /** @addtogroup STM32F7xx_HAL_Examples
@@ -156,7 +156,7 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-  // HAL_IncTick();
+  HAL_IncTick();
 }
 
 /******************************************************************************/

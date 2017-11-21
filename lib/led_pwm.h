@@ -3,6 +3,7 @@
 #include <stm32f7xx.h>
 
 #define LED_1_GPIO_RCC()	__HAL_RCC_GPIOD_CLK_ENABLE()
+#define LED_1_GPIO_RCC_D()	__HAL_RCC_GPIOD_CLK_DISABLE()
 #define LED_1_GPIO			GPIOD
 
 #define LED_L_OVER			GPIO_PIN_3
@@ -12,8 +13,8 @@
 #define LED_L_MID			GPIO_PIN_12
 #define LED_L_BOTTOM		GPIO_PIN_13
 
-
 #define LED_2_GPIO_RCC()	__HAL_RCC_GPIOB_CLK_ENABLE()
+#define LED_2_GPIO_RCC_D()	__HAL_RCC_GPIOB_CLK_DISABLE()
 #define LED_2_GPIO			GPIOB
 
 #define LED_R_MID			GPIO_PIN_3
@@ -46,6 +47,7 @@ typedef enum
 	} pwm_page;
 
 void PWM_Init( void );
+void PWM_Deinit( void );
 void PWM_set_all( float level, pwm_page alt );
 void PWM_set_level( ONE_led_t ch, float level, pwm_page alt );
 void PWM_step( pwm_page alt );

@@ -28,9 +28,6 @@ STM32_INCLUDES = \
 	-I$(CUBE)/CMSIS/Device/ST/STM32F7xx/Include/ \
 	-I$(CUBE)/CMSIS/Include/ \
 	-I$(CUBE)/STM32F7xx_HAL_Driver/Inc/ \
-	-Iusbd/ \
-	-I$(USBD)/Class/DFU/Inc/ \
-	-I$(USBD)/Core/Inc/ \
 	-I../stm-audio-bootloader/fsk/ \
 	-I../stmlib/system/ \
 	-I$(CUBE)/BSP/STM32F769I-Discovery/ \
@@ -70,23 +67,20 @@ SRC = stm32f7xx_it.c \
 	$(HALS)/stm32f7xx_hal_dma2d.c \
 	$(HALS)/stm32f7xx_hal_pwr.c \
 	$(HALS)/stm32f7xx_hal_pwr_ex.c \
-	$(HALS)/stm32f7xx_hal_pcd.c \
-	$(HALS)/stm32f7xx_hal_pcd_ex.c \
 	$(HALS)/stm32f7xx_hal_sai.c \
 	$(HALS)/stm32f7xx_hal_sd.c \
 	$(HALS)/stm32f7xx_hal_usart.c \
 	$(HALS)/stm32f7xx_ll_fmc.c \
 	$(HALS)/stm32f7xx_ll_sdmmc.c \
-	$(HALS)/stm32f7xx_ll_usb.c \
 	$(wildcard lib/*.c) \
 	$(WRLIB)/str_buffer.c \
 	$(WRLIB)/wrMath.c \
 
 
 OBJDIR = .
-OBJS = $(SRC:%.c=$(OBJDIR)/%.o)
+OBJS = ../stm-audio-bootloader/fsk/packet_decoder.o bootloader.o
+OBJS += $(SRC:%.c=$(OBJDIR)/%.o)
 OBJS += Startup.o
-OBJS += system.o ../stmlib/system/system_clock.o ../stm-audio-bootloader/fsk/packet_decoder.o bootloader.o
 
 # C dependencies echoed into Makefile
 DEP = $(OBJS:.o=.d)  # one dependency file for each source

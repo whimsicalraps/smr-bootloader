@@ -33,6 +33,12 @@ void PWM_Init( void )
 	}
 }
 
+void PWM_Deinit( void )
+{
+	LED_1_GPIO_RCC_D();
+	LED_2_GPIO_RCC_D();
+}
+
 void PWM_set_all( float level, pwm_page alt )
 {
 	const float pwm_max = (float)PWM_LEVELS;

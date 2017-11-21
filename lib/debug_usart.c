@@ -10,6 +10,7 @@ str_buffer_t str_buf;
 
 #ifdef RELEASE
 void Debug_USART_Init(void){ return; }
+void Debug_USART_Deinit( void ){ return; }
 void Debug_USART_putc(uint8_t c){ return; }
 void Debug_USART_printf(uint8_t *s){ return; }
 void Debug_USART_putn(uint32_t n){ return; }
@@ -30,6 +31,11 @@ void Debug_USART_Init( void )
 	HAL_USART_Init( &handusart );
 
 	str_buffer_init( &str_buf, 512 ); // fifo for DMA buffer
+}
+
+void Debug_USART_Deinit( void )
+{
+	HAL_USART_DeInit( &handusart );
 }
 
 // LOW LEVEL USART HARDWARE CONFIGURATION FUNCTION
