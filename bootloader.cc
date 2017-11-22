@@ -115,7 +115,7 @@ uint8_t check_boot( void )
 
 	while( dly-- ){
 		ONE_getstates( &state_mask );
-		debounce += (state_mask == 1);
+		debounce += (state_mask == 4);
 		H_DELAY(1000);
 	}
 	return ((debounce > 0x10)
