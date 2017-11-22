@@ -1,6 +1,10 @@
-# smr-bootloader
+# stm32f7-bootloader
 
-## Audio bootloader for the Spectral Multiband Resonator
+## Audio bootloader for the ???
+
+nb: the below is not directly applicable. needs to be updated for this new project.
+
+//
 
 The core of this bootloader is from the stm-audio-bootloader from [pichenettes](https://github.com/pichenettes/eurorack). The bootloader.cc file has been modified, and interface/driver files have been added for use with the hardware UI of the Spectral Multiband Resonator (SMR).
 
