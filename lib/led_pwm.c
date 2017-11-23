@@ -116,3 +116,56 @@ void led_motor_off( void )
 	PWM_set_level( MOTOR_L, 0.0, 0 );
 	//PWM_set_level( MOTOR_L2, position, 0 );
 }
+
+
+// bootloader animations
+void led_boot_in( float level )
+{
+    PWM_set_level( OVER_L
+                 , -level / 24.0
+                 , pwm_main
+                 );
+    PWM_set_level( OVER_R
+                 , level / 24.0
+                 , pwm_main
+                 );
+}
+void led_boot_all( float level )
+{
+   	const float pwm_max = (float)PWM_LEVELS;
+
+	uint8_t tmp = (uint8_t)(lim_f_0_1( level ) * pwm_max);
+	for( uint8_t i=0; i<4; i++ ){
+		pwm_states[0][i] = tmp;
+		pwm_states[0][i+5] = tmp;
+	}
+}
+void led_boot_wait( void )
+{
+    PWM_set_level( MODE_L
+                 , 1.0
+                 , pwm_main
+                 );
+}
+void led_boot_rx( void )
+{
+    PWM_set_level( ACTION_L
+                 , 1.0
+                 , pwm_main
+                 );
+}
+void led_boot_error( void )
+{
+    PWM_set_level( MOTOR_L
+                 , 1.0
+                 , pwm_main
+                 );
+}
+void led_boot_write( void )
+{
+    PWM_set_level( RECORD_L
+                 , 1.0
+                 , pwm_main
+                 );
+
+}

@@ -55,3 +55,10 @@ void PWM_step( pwm_page alt );
 // higher-level functions
 void led_motor_cue( float position );
 void led_motor_off( void );
+
+void led_boot_in( float level );
+void led_boot_all( float level );
+void led_boot_wait( void );
+void led_boot_rx( void );
+void led_boot_error( void );
+void led_boot_write( void );

@@ -93,8 +93,6 @@ void Init( void )
 	Debug_USART_Init();
 	ONE_HW_Init();
 	HAL_Delay(1);
-
-	PWM_set_all( 0.4, pwm_main );
 }
 
 void DeInit( void )
