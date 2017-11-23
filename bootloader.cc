@@ -73,8 +73,6 @@ inline void *memcpy(void *dest, const void *src, size_t n)
 }
 
 uint16_t State=0;
-uint16_t manual_exit_primed;
-uint8_t exit_updater;
 
 extern __IO int32_t inBuff[AUDIO_BUFF_SIZE];
 extern __IO int32_t outBuff[AUDIO_BUFF_SIZE];
@@ -107,7 +105,7 @@ void DeInit( void )
 	ONE_HW_Deinit();
 }
 
-uint8_t check_boot( void )
+uint8_t is_boot( void )
 {
 	uint8_t state_mask = 0;
 	int32_t dly = 0x20;
@@ -119,8 +117,24 @@ uint8_t check_boot( void )
 		H_DELAY(1000);
 	}
 	return ((debounce > 0x10)
-				? 0
-				: 1 );
+				? 1
+				: 0 );
+}
+
+uint8_t is_exit( void )
+{
+	uint8_t state_mask = 0;
+	int32_t dly = 0x20;
+	uint32_t debounce = 0;
+
+	while( dly-- ){
+		ONE_getstates( &state_mask );
+		debounce += (state_mask == 8);
+		H_DELAY(1000);
+	}
+	return ((debounce > 0x10)
+				? 1
+				: 0 );
 }
 
 }
@@ -139,35 +153,53 @@ enum UiState {
 };
 volatile UiState ui_state;
 
-const uint32_t in_threshold = 0xFFF; // 4096
-uint16_t discard_samples = 8000;
+void set_ui( UiState s )
+{
+    ui_state = s;
+    led_boot_all( 0.0 );
+    switch( s ){
+        case UI_STATE_WAITING:
+            led_boot_wait();
+            break;
+        case UI_STATE_RECEIVING:
+            led_boot_rx();
+            break;
+        case UI_STATE_ERROR:
+            led_boot_error();
+            break;
+        case UI_STATE_WRITING:
+            led_boot_write();
+            break;
+    }
+}
+
+const int32_t in_threshold = 99999999; //8 nines = 1/3rd macbook
+uint32_t discard_samples = 120000; //2.5s for DC pop on startup
 
 void DSP_Block_Process( __IO int32_t* in_codec
 	                  , __IO int32_t* out_codec
 	                  ,      uint16_t b_size
 	                  )
 {
-	uint8_t sample;
 	static uint8_t last_sample = 0;
+	uint8_t sample;
 	int32_t scaled_in;
+    float ui_level = 0.0;
 
 	PWM_step( pwm_main ); // led-update
 
 	while( b_size-- ){
-		scaled_in = -(int32_t)(*in_codec << 8);
+		scaled_in = (int32_t)(*in_codec++ << 8);
 
-		if( last_sample == 1 ){
-			if( scaled_in < -in_threshold ){
-				sample = 0;
-			} else {
-				sample = 1;
-			}
+		if( scaled_in < -in_threshold ){
+			sample = 0;
+            ui_level -= 1.0;
+        } else if( scaled_in > in_threshold ){
+			sample = 1;
+            ui_level += 1.0;
 		} else {
-			if( scaled_in > in_threshold ){
-				sample = 1;
-			} else {
-				sample = 0;
-			}
+			sample = last_sample;
+            ui_level = 0.0;
 		}
 		last_sample = sample;
 
@@ -176,14 +208,9 @@ void DSP_Block_Process( __IO int32_t* in_codec
 		} else {
 			--discard_samples;
 		}
-
-		if( ui_state == UI_STATE_ERROR ){
-			*out_codec++ = 0;
-		} else {
-			*out_codec++ = *in_codec++; // echo in to output
-			// instead we could play a little melody?!?!?!
-		}
+		*out_codec++ = 0;
 	}
+    led_boot_in( ui_level );
 }
 
 uint16_t packet_index;
@@ -208,7 +235,7 @@ void InitializeReception( void )
 	current_address = kStartReceiveAddress;
 	packet_index = 0;
 	old_packet_index = 0;
-	ui_state = UI_STATE_WAITING;
+    set_ui( UI_STATE_WAITING );
 }
 
 int main( void )
@@ -217,19 +244,19 @@ int main( void )
 	uint8_t i;
 
 	Init();
-	InitializeReception(); //FSK
 
-	if ( !check_boot() ){
+// no key check, forces bootloader
+	//if ( is_boot() ){
+	    InitializeReception(); //FSK
 		init_audio_in();
-	}
-	exit_updater = check_boot();
+    //} else {
+        //goto StartApp; // do not pass go. do not collect $200
+    //}
 
-	manual_exit_primed=0;
-	while (!exit_updater) {
+    while (1) {
 		g_error = 0;
 		while( demodulator.available()
-			&& !g_error
-			&& !exit_updater ){
+			&& !g_error ){
 
 			uint8_t symbol = demodulator.NextSymbol();
 			PacketDecoderState state = decoder.ProcessSymbol(symbol);
@@ -237,11 +264,16 @@ int main( void )
 
 			switch( state ){
 				case PACKET_DECODER_STATE_OK:
-					ui_state = UI_STATE_RECEIVING;
-					memcpy(recv_buffer + (packet_index % kPacketsPerBlock) * kPacketSize, decoder.packet_data(), kPacketSize);
+                    set_ui( UI_STATE_RECEIVING );
+					memcpy( recv_buffer
+                            + (packet_index % kPacketsPerBlock)
+                              * kPacketSize
+                          , decoder.packet_data()
+                          , kPacketSize
+                          );
 					++packet_index;
 					if( (packet_index % kPacketsPerBlock) == 0 ){
-						ui_state = UI_STATE_WRITING;
+                        set_ui( UI_STATE_WRITING );
 						ProgramPage( &current_address
 								   , recv_buffer
 								   , kBlockSize
@@ -262,29 +294,36 @@ int main( void )
 					break;
 
 				case PACKET_DECODER_STATE_END_OF_TRANSMISSION:
-					exit_updater = 1;
-
 					//Copy from Receive buffer to Execution memory
 					CopyMemory( kStartReceiveAddress
 							  , kStartExecutionAddress
 							  , current_address - kStartReceiveAddress
 							  );
-					break;
+                    goto StartApp; // we're done! time to start the application
 
 				default:
 					break;
 			}
 		}
-		if( g_error ){ // allow easy restarting
-			ui_state = UI_STATE_ERROR;
-			// while (check_speed()){;}
-			// while (check_speed()){;}
-			// startup animation
-			InitializeReception();
-			manual_exit_primed=0;
-			exit_updater=0;
+		if( g_error ){
+            set_ui( UI_STATE_ERROR );
+
+            while( !is_boot() ){ // wait until a key occurs
+                if( is_exit() ){ // if it's 'UP'
+                    goto StartApp; // exit bootloader -> goto application
+                }
+            }
+            while( is_boot() ){;} // wait for release
+
+            InitializeReception();
 		}
+        if( is_exit() ){
+            goto StartApp;
+        }
 	}
+
+StartApp:
+    while( is_exit() ){;} // wait until nothing pressed
     DeInit();
 	JumpTo(kStartExecutionAddress);
 }
