@@ -1,7 +1,10 @@
 #include "flash.h"
 #include "debug_usart.h"
 
-uint8_t CopyMemory(uint32_t src_addr, uint32_t dst_addr, size_t size)
+uint8_t CopyMemory( uint32_t src_addr
+                  , uint32_t dst_addr
+                  , size_t size
+                  )
 {
 	HAL_FLASH_Unlock();
 
@@ -11,6 +14,7 @@ uint8_t CopyMemory(uint32_t src_addr, uint32_t dst_addr, size_t size)
 		for( int32_t i=0; i < sector_count; ++i ){
 			if( dst_addr == kSectorBaseAddress[i] ){
 				uint32_t sector_error;
+                Debug_USART_printf("erase\n\r");
 				FLASH_EraseInitTypeDef erase_setup =
 					{ .TypeErase    = FLASH_TYPEERASE_SECTORS
 					, .Sector       = i
@@ -20,10 +24,12 @@ uint8_t CopyMemory(uint32_t src_addr, uint32_t dst_addr, size_t size)
 				HAL_FLASHEx_Erase( &erase_setup
 								 , &sector_error
 								 );
+                Debug_USART_putn8(i);
 			}
 		}
 
 		if( dst_addr > (kStartReceiveAddress - 4) ){
+            Debug_USART_printf("overwrite_flash\n\r");
 			return 1; // trying to overwrite receive buffer
 		}
 
@@ -49,6 +55,7 @@ uint8_t ProgramPage( uint32_t*      current_address
 	for( int32_t i=0; i < sector_count; ++i ){
 		if( *current_address == kSectorBaseAddress[i] ){
 			uint32_t sector_error;
+            Debug_USART_printf("erase\n\r");
 	        FLASH_WaitForLastOperation( 10000 );
 			FLASH_EraseInitTypeDef erase_setup =
 				{ .TypeErase    = FLASH_TYPEERASE_SECTORS
@@ -60,6 +67,7 @@ uint8_t ProgramPage( uint32_t*      current_address
 							 , &sector_error
 							 );
 			// check sector_error value for erase error reporting
+                Debug_USART_putn8(i);
 		}
 	}
 
@@ -72,6 +80,7 @@ uint8_t ProgramPage( uint32_t*      current_address
 						 );
 		*current_address += 4;
 		if( *current_address >= EndOfMemory ){
+            Debug_USART_printf("endofmem\n\r");
 			return 1; // end of memory
 		}
 	}

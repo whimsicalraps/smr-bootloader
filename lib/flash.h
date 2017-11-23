@@ -25,7 +25,10 @@ const uint32_t kSectorBaseAddress[] =
 
 const uint32_t sector_count = 12;
 
-uint8_t CopyMemory(uint32_t src_addr, uint32_t dst_addr, size_t size);
+uint8_t CopyMemory( uint32_t src_addr
+                  , uint32_t dst_addr
+                  , size_t size
+                  );
 uint8_t ProgramPage( uint32_t*      current_address
 				   , const uint8_t* data
 				   , size_t         size
