@@ -1,10 +1,11 @@
 #include "flash.h"
+#include "debug_usart.h"
 
 uint8_t CopyMemory(uint32_t src_addr, uint32_t dst_addr, size_t size)
 {
 	HAL_FLASH_Unlock();
 
-	for( size_t written = 0; written < size; written += 8 ){
+	for( size_t written = 0; written < size; written += 4 ){
 
 		// erase sector if we just reached one
 		for( int32_t i=0; i < sector_count; ++i ){
@@ -22,18 +23,17 @@ uint8_t CopyMemory(uint32_t src_addr, uint32_t dst_addr, size_t size)
 			}
 		}
 
-		if( dst_addr > (kStartReceiveAddress - 8) ){
+		if( dst_addr > (kStartReceiveAddress - 4) ){
 			return 1; // trying to overwrite receive buffer
 		}
 
 		//Program the word
-		// FLASH_ProgramWord(dst_addr, *(uint32_t*)src_addr);
-		HAL_FLASH_Program( FLASH_TYPEPROGRAM_DOUBLEWORD
+		HAL_FLASH_Program( FLASH_TYPEPROGRAM_WORD
 						 , dst_addr
-						 , *(uint64_t*)src_addr
+						 , *(uint32_t*)src_addr
 						 );
-		src_addr += 8;
-		dst_addr += 8;
+		src_addr += 4;
+		dst_addr += 4;
 	}
 	return 0;
 }
@@ -49,6 +49,7 @@ uint8_t ProgramPage( uint32_t*      current_address
 	for( int32_t i=0; i < sector_count; ++i ){
 		if( *current_address == kSectorBaseAddress[i] ){
 			uint32_t sector_error;
+	        FLASH_WaitForLastOperation( 10000 );
 			FLASH_EraseInitTypeDef erase_setup =
 				{ .TypeErase    = FLASH_TYPEERASE_SECTORS
 				, .Sector       = i
@@ -62,17 +63,17 @@ uint8_t ProgramPage( uint32_t*      current_address
 		}
 	}
 
-	uint64_t* words = (uint64_t*)data;
-	for( size_t written = 0; written < size; written += 8 ){
-		HAL_FLASH_Program( FLASH_TYPEPROGRAM_DOUBLEWORD
+	uint32_t* words = (uint32_t*)data;
+	for( size_t written = 0; written < size; written += 4 ){
+	    FLASH_WaitForLastOperation( 10000 );
+		HAL_FLASH_Program( FLASH_TYPEPROGRAM_WORD
 						 , *current_address
 						 , *words++
 						 );
-		*current_address += 8;
+		*current_address += 4;
 		if( *current_address >= EndOfMemory ){
 			return 1; // end of memory
 		}
 	}
-	// FLASH_WaitForLastOperation(uint32_t Timeout);
 	return 0; // no error
 }
