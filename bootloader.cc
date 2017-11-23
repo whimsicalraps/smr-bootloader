@@ -80,9 +80,9 @@ extern __IO int32_t outBuff[AUDIO_BUFF_SIZE];
 void init_audio_in( void )
 {
 	ak4556_Init(DSP_SAMPLE_RATE);
-	H_DELAY(100000);
+	//H_DELAY(100000);
 	ak4556_Start();
-	H_DELAY(100000);
+	//H_DELAY(100000);
 }
 
 void Init( void )
