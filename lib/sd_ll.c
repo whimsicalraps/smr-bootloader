@@ -316,28 +316,6 @@ __weak void BSP_SD_ReadCpltCallback(void)
 {
 }
 
-
-// 8bit centric r/w functions with DMA
-uint8_t WR_SD_Read(uint8_t *pData, uint32_t ReadAddr, uint32_t NumOfBlocks)
-{
-	// Read block(s) in DMA transfer mode
-	if(HAL_SD_ReadBlocks_DMA(&uSdHandle, pData, ReadAddr, NumOfBlocks) != HAL_OK) {
-		return MSD_ERROR;
-	} else {
-		return MSD_OK;
-	}
-}
-
-uint8_t WR_SD_Write(uint8_t *pData, uint32_t WriteAddr, uint32_t NumOfBlocks)
-{
-	// Write block(s) in DMA transfer mode
-	if(HAL_SD_WriteBlocks_DMA(&uSdHandle, pData, WriteAddr, NumOfBlocks) != HAL_OK){
-		return MSD_ERROR;
-	} else {
-		return MSD_OK;
-	}
-}
-
 uint8_t sd_ll_read_audio( uint8_t* pickle_buf
 	                    , uint32_t sd_address
 	                    , uint32_t num_sd_pages

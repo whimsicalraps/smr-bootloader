@@ -49,6 +49,7 @@ typedef struct {
 } sd_rw_t;
 
 void sdio_Init(void);
+void sdio_DeInit(void);
 
 uint8_t sd_busywait( void );
 void sd_ll_error_callback(void);

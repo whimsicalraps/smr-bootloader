@@ -78,12 +78,10 @@ void    BSP_SD_AbortCallback(void);
 void    BSP_SD_WriteCpltCallback(void);
 void    BSP_SD_ReadCpltCallback(void);
 
-void    sd_ll_error_callback(void);
-void    sd_ll_abort_callback(void);
+void sd_ll_error_callback(void);
+void sd_ll_abort_callback(void);
 
-uint8_t WR_SD_Read(uint8_t *pData, uint32_t ReadAddr, uint32_t NumOfBlocks);
 void    sd_ll_read_callback(void);
-uint8_t WR_SD_Write(uint8_t *pData, uint32_t WriteAddr, uint32_t NumOfBlocks);
 void    sd_ll_write_callback(void);
 
 // formal i/o functions for sd handling

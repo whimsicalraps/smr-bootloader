@@ -80,6 +80,14 @@ void sdio_Init(void)
     }*/
 }
 
+void sdio_DeInit(void)
+{
+	BSP_SD_DeInit();
+    // this leaves a lot of malloc'd data
+    // but for now this deinit just needs to turn off drivers
+    // the stack pointer gets reset momentarily anyway
+}
+
 uint8_t _sd_dma_busy( void )
 {
 	return sdcard.q_busy;

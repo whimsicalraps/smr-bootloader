@@ -56,6 +56,7 @@ extern "C" {
 #include "lib/debug_usart.h"
 #include "lib/ak4556.h"
 #include "lib/flash.h"
+#include "lib/sdio.h"
 
 #define H_DELAY(n) do { register unsigned int i; \
 		for (i = 0; i < n; ++i) \
@@ -92,6 +93,7 @@ void Init( void )
 	Debug_HW_Init();
 	Debug_USART_Init();
 	ONE_HW_Init();
+    sdio_Init();
 	HAL_Delay(1);
 }
 
@@ -101,6 +103,7 @@ void DeInit( void )
 	Debug_HW_Deinit();
 	Debug_USART_Deinit();
 	ONE_HW_Deinit();
+    sdio_DeInit();
 }
 
 uint8_t is_boot( void )
