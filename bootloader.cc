@@ -56,7 +56,6 @@ extern "C" {
 #include "lib/debug_usart.h"
 #include "lib/ak4556.h"
 #include "lib/flash.h"
-#include "lib/sdio.h"
 
 #define H_DELAY(n) do { register unsigned int i; \
 		for (i = 0; i < n; ++i) \
@@ -93,7 +92,6 @@ void Init( void )
 	Debug_HW_Init();
 	Debug_USART_Init();
 	ONE_HW_Init();
-    sdio_Init();
 	HAL_Delay(1);
 }
 
@@ -103,7 +101,6 @@ void DeInit( void )
 	Debug_HW_Deinit();
 	Debug_USART_Deinit();
 	ONE_HW_Deinit();
-    sdio_DeInit();
 }
 
 uint8_t is_boot( void )
@@ -233,7 +230,10 @@ void InitializeReception( void )
 	demodulator.Init(16, 8, 4);
 	demodulator.Sync();
 
-	current_address = kStartReceiveAddress;
+    // unsafe mode! just overwrites data directly
+    // a failed update will destroy module state until corrected
+    // but it means we get the full flash mem size!
+	current_address = kStartExecutionAddress;// kStartReceiveAddress;
 	packet_index = 0;
 	old_packet_index = 0;
     set_ui( UI_STATE_WAITING );
@@ -296,10 +296,10 @@ int main( void )
 
 				case PACKET_DECODER_STATE_END_OF_TRANSMISSION:
 					//Copy from Receive buffer to Execution memory
-					CopyMemory( kStartReceiveAddress
-							  , kStartExecutionAddress
-							  , current_address - kStartReceiveAddress
-							  );
+					//CopyMemory( kStartReceiveAddress
+					//		  , kStartExecutionAddress
+					//		  , current_address - kStartReceiveAddress
+					//		  );
                     goto StartApp; // we're done! time to start the application
 
 				default:

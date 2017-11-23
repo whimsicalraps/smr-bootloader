@@ -68,10 +68,7 @@ SRC = stm32f7xx_it.c \
 	$(HALS)/stm32f7xx_hal_pwr.c \
 	$(HALS)/stm32f7xx_hal_pwr_ex.c \
 	$(HALS)/stm32f7xx_hal_sai.c \
-	$(HALS)/stm32f7xx_hal_sd.c \
 	$(HALS)/stm32f7xx_hal_usart.c \
-	$(HALS)/stm32f7xx_ll_fmc.c \
-	$(HALS)/stm32f7xx_ll_sdmmc.c \
 	$(wildcard lib/*.c) \
 	$(WRLIB)/str_buffer.c \
 	$(WRLIB)/wrMath.c \
