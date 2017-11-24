@@ -56,6 +56,9 @@ extern "C" {
 #include "lib/debug_usart.h"
 #include "lib/ak4556.h"
 #include "lib/flash.h"
+#include "lib/music.h"
+
+#include "wrOscSine.h"
 
 #define H_DELAY(n) do { register unsigned int i; \
 		for (i = 0; i < n; ++i) \
@@ -83,6 +86,7 @@ void init_audio_in( void )
 	//H_DELAY(100000);
 	ak4556_Start();
 	//H_DELAY(100000);
+    init_music_maker();
 }
 
 void Init( void )
@@ -206,9 +210,12 @@ void DSP_Block_Process( __IO int32_t* in_codec
 		} else {
 			--discard_samples;
 		}
-		*out_codec++ = 0;
+		//*out_codec++ = 0;
 	}
     led_boot_in( ui_level );
+
+    // play a little melody
+    make_music( (int32_t*)out_codec, ui_level );
 }
 
 uint16_t packet_index;

@@ -72,6 +72,7 @@ SRC = stm32f7xx_it.c \
 	$(wildcard lib/*.c) \
 	$(WRLIB)/str_buffer.c \
 	$(WRLIB)/wrMath.c \
+	$(WRDSP)/wrOscSine.c \
 
 
 OBJDIR = .
