@@ -158,21 +158,7 @@ volatile UiState ui_state;
 void set_ui( UiState s )
 {
     ui_state = s;
-    led_boot_all( 0.0 );
-    switch( s ){
-        case UI_STATE_WAITING:
-            led_boot_wait();
-            break;
-        case UI_STATE_RECEIVING:
-            led_boot_rx();
-            break;
-        case UI_STATE_ERROR:
-            led_boot_error();
-            break;
-        case UI_STATE_WRITING:
-            led_boot_write();
-            break;
-    }
+    led_sprite( 1 );
 }
 
 const int32_t in_threshold = 99999999; //8 nines = 1/3rd macbook

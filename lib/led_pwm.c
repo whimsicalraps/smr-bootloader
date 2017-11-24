@@ -2,6 +2,8 @@
 
 #include "wrMath.h"
 
+int8_t sprite;
+
 uint8_t pwm_states[pwm_page_count][PWM_COUNT]; // leds (2nd array for globals)
 
 void PWM_Init( void )
@@ -31,6 +33,7 @@ void PWM_Init( void )
 	for( uint8_t i=0; i<PWM_COUNT*2; i++ ){
 		*pwm_init++ = 0;
 	}
+    sprite = -1;
 }
 
 void PWM_Deinit( void )
@@ -62,7 +65,24 @@ void PWM_step( pwm_page alt )
 {
 	static uint8_t ix;
 
-	for( uint8_t i=0; i<PWM_COUNT; i++ ){
+    if( sprite != -1 ){
+        switch( sprite ){
+            case 0: // waiting
+                led_boot_wait();
+                break;
+            case 1: //UI_STATE_RECEIVING:
+                led_boot_rx();
+                break;
+            case 2: //UI_STATE_ERROR:
+                led_boot_error();
+                break;
+            case 3: //UI_STATE_WRITING:
+                led_boot_write();
+                break;
+        }
+    }
+    // process leds
+    for( uint8_t i=0; i<PWM_COUNT; i++ ){
 		// refactor to only call change on state change
 		ll_led_set( i
 			      , (pwm_states[alt][i] > ix)
@@ -119,6 +139,10 @@ void led_motor_off( void )
 
 
 // bootloader animations
+void led_sprite( int8_t new_sprite )
+{
+    sprite = new_sprite;
+}
 void led_boot_in( float level )
 {
     PWM_set_level( OVER_L
@@ -142,29 +166,97 @@ void led_boot_all( float level )
 }
 void led_boot_wait( void )
 {
-    PWM_set_level( MODE_L
-                 , 1.0
+    static float state = 0.0;
+    float astate = state*state;
+    led_boot_all( 0.0 );
+    PWM_set_level( RECORD_R
+                 , _Abs(astate)
                  , pwm_main
                  );
+    state += 0.0007;
+    if(state > 1.0){ state = -1.0; }
 }
 void led_boot_rx( void )
 {
-    PWM_set_level( ACTION_L
-                 , 1.0
+    static float state = 0.0;
+    float astate = _Abs(state);
+    PWM_set_level( MODE_R
+                 , astate-3.0
                  , pwm_main
                  );
+    PWM_set_level( ACTION_R
+                 , astate-2.0
+                 , pwm_main
+                 );
+    PWM_set_level( MOTOR_R
+                 , astate-1.0
+                 , pwm_main
+                 );
+    PWM_set_level( RECORD_R
+                 , astate
+                 , pwm_main
+                 );
+    state += 0.001;
+    if(state > 4.0){ state = -4.0; }
 }
 void led_boot_error( void )
 {
-    PWM_set_level( MOTOR_L
-                 , 1.0
+    static int16_t count = 0;
+    static int8_t pulse = 0;
+    static float state = 0.0;
+    led_boot_all( 0.0 );
+    PWM_set_level( RECORD_L
+                 , state
                  , pwm_main
                  );
+    count++;
+    if( count > 280
+     && pulse < 3 ){ state = 1.0; }
+    if( count > 350 ){
+        count = 0;
+        state = 0.0;
+        pulse++;
+        if( pulse > 5 ){ pulse = 0; }
+    }
 }
 void led_boot_write( void )
 {
+    static float state = 0.0;
+    state += 0.001;
+    if(state > 1.0){ state = -1.0; }
+    float astate = state*state;
+    astate = _Abs(astate);
+    PWM_set_level( MODE_L
+                 , astate
+                 , pwm_main
+                 );
+    PWM_set_level( ACTION_R
+                 , astate
+                 , pwm_main
+                 );
+    PWM_set_level( MOTOR_L
+                 , astate
+                 , pwm_main
+                 );
+    PWM_set_level( RECORD_R
+                 , astate
+                 , pwm_main
+                 );
+
+    PWM_set_level( MODE_R
+                 , 1.0-astate
+                 , pwm_main
+                 );
+    PWM_set_level( ACTION_L
+                 , 1.0-astate
+                 , pwm_main
+                 );
+    PWM_set_level( MOTOR_R
+                 , 1.0-astate
+                 , pwm_main
+                 );
     PWM_set_level( RECORD_L
-                 , 1.0
+                 , 1.0-astate
                  , pwm_main
                  );
 

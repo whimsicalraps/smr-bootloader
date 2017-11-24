@@ -57,6 +57,7 @@ void led_motor_cue( float position );
 void led_motor_off( void );
 
 void led_boot_in( float level );
+void led_sprite( int8_t new_sprite );
 void led_boot_all( float level );
 void led_boot_wait( void );
 void led_boot_rx( void );
