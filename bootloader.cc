@@ -158,7 +158,7 @@ volatile UiState ui_state;
 void set_ui( UiState s )
 {
     ui_state = s;
-    led_sprite( 1 );
+    led_sprite( s );
 }
 
 const int32_t in_threshold = 99999999; //8 nines = 1/3rd macbook
@@ -240,12 +240,12 @@ int main( void )
 	Init();
 
 // no key check, forces bootloader
-	//if ( is_boot() ){
+	if ( is_boot() ){
 	    InitializeReception(); //FSK
 		init_audio_in();
-    //} else {
-        //goto StartApp; // do not pass go. do not collect $200
-    //}
+    } else {
+        goto StartApp; // do not pass go. do not collect $200
+    }
 
     while (1) {
 		g_error = 0;
