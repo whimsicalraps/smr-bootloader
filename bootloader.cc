@@ -139,6 +139,24 @@ uint8_t is_exit( void )
 				: 0 );
 }
 
+// nothing, or RECORD + LOOP (factory reset)
+uint8_t after_exit( void )
+{
+	uint8_t state_mask = 0;
+	int32_t dly = 0x20;
+	uint32_t debounce = 0;
+
+	while( dly-- ){
+		ONE_getstates( &state_mask );
+		debounce += ( state_mask == 5
+                   || state_mask == 0 );
+		H_DELAY(1000);
+	}
+	return ((debounce > 0x10)
+				? 1
+				: 0 );
+}
+
 }
 
 using namespace stmlib;
@@ -317,7 +335,7 @@ int main( void )
 	}
 
 StartApp:
-    while( is_exit() ){;} // wait until nothing pressed
+    while( !after_exit() ){;} // wait until nothing or factory reset
     DeInit();
 	JumpTo(kStartExecutionAddress);
 }
