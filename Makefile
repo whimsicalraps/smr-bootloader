@@ -20,7 +20,8 @@ BIN = $(TARGET).bin
 DEFS = -DUSE_STDPERIPH_DRIVER -DSTM32F7XX -DARM_MATH_CM7 -DHSE_VALUE=8000000
 STARTUP = $(CUBE)/CMSIS/Device/ST/STM32F7xx/Source/Templates/gcc/startup_stm32f765xx.s
 
-MCFLAGS = -march=armv7e-m -mthumb 
+# MCFLAGS = -march=armv7e-m -mthumb 
+MCFLAGS = -mthumb -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
 STM32_INCLUDES = \
 	-I$(WRLIB)/ \
