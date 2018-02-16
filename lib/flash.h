@@ -2,7 +2,7 @@
 
 #include <stm32f7xx.h>
 
-const uint32_t kStartExecutionAddress = 0x08010000;
+const uint32_t kStartExecutionAddress = 0x08018000;
 const uint32_t kStartReceiveAddress   = 0x08100000;
 const uint32_t EndOfMemory            = 0x081FFFFC; // allows 1MB program size
 
