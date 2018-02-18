@@ -13,8 +13,8 @@ DMA_HandleTypeDef		hSaiDma2;
 
 // audio buffers for codec DMA
 // prefer to malloc these in the Init fn?
-__IO int32_t            inBuff[AUDIO_BUFF_SIZE];
-__IO int32_t            outBuff[AUDIO_BUFF_SIZE];
+__IO uint32_t inBuff[AUDIO_BUFF_SIZE];
+__IO uint32_t outBuff[AUDIO_BUFF_SIZE];
 
 
 // exported fns

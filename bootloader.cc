@@ -188,9 +188,9 @@ void set_ui( UiState s )
 const int32_t in_threshold = 0x7FFFFFFF >> 5; //0v625 p2p (-10dBV less 3db)
 uint32_t discard_samples = 120000; //2.5s for DC pop on startup
 
-void DSP_Block_Process( __IO int32_t* in_codec
-	                  , __IO int32_t* out_codec
-	                  ,      uint16_t b_size
+void DSP_Block_Process( __IO uint32_t* in_codec
+	                  , __IO uint32_t* out_codec
+	                  ,      uint16_t  b_size
 	                  )
 {
 	static uint8_t last_sample = 0;
