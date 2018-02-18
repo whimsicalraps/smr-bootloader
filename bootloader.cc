@@ -108,6 +108,7 @@ void Init( void )
 void DeInit( void )
 {
    	// Deinit open drivers
+    deinit_audio_in();
 	Debug_HW_Deinit();
 	Debug_USART_Deinit();
 	ONE_HW_Deinit();
@@ -292,6 +293,8 @@ int main( void )
                           );
 					++packet_index;
 					if( (packet_index % kPacketsPerBlock) == 0 ){
+                        dsp_clear_buffer();
+                        ak4556_Stop();
                         set_ui( UI_STATE_WRITING );
 						ProgramPage( &current_address
 								   , recv_buffer
@@ -299,6 +302,7 @@ int main( void )
 								   );
 						decoder.Reset();
 						demodulator.Sync(); //FSK
+                        ak4556_Start();
 					} else {
 						decoder.Reset(); //FSK
 					}
