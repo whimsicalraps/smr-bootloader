@@ -141,6 +141,7 @@ void led_motor_off( void )
 // bootloader animations
 void led_sprite( int8_t new_sprite )
 {
+    led_boot_all(0.0);
     sprite = new_sprite;
 }
 void led_boot_in( float level )
