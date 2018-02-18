@@ -18,16 +18,17 @@ void init_music_maker( void )
     // we are the music makers
     for( uint8_t j=0; j<4; j++ ){
         osc_sine_init( &sine_struct[j] );
-        osc_sine_time( &sine_struct[j]
-                     , JUST_OFFSET
-                       * just_pitch( j+5, 6-j )
-                     );
         lpgate_init( &lpgate_struct[j], 1, 1, BLOCK_SIZE );
     }
+    osc_sine_time( &sine_struct[0], JUST_OFFSET * just_pitch( 4, 3 ) );
+    osc_sine_time( &sine_struct[1], JUST_OFFSET * just_pitch( 3, 2 ) );
+    osc_sine_time( &sine_struct[2], JUST_OFFSET * just_pitch( 18,8  ) );
+    osc_sine_time( &sine_struct[3], JUST_OFFSET * just_pitch( 27,16 ) );
+    
     osc_sine_init( &sine_mod[0] );
-    osc_sine_time( &sine_mod[0], 0.0001 );
+    osc_sine_time( &sine_mod[0], 0.000023 );
     osc_sine_init( &sine_mod[1] );
-    osc_sine_time( &sine_mod[1], 0.00023 );
+    osc_sine_time( &sine_mod[1], 0.000027 );
 }
 int32_t* make_music( int32_t* output
                    , float    samp_dir
@@ -42,6 +43,9 @@ int32_t* make_music( int32_t* output
 
     static int16_t melody_hold = 1;
     static int8_t ratios[2][2] = {{1, 1}, {1, 1}};
+    const int8_t ilookup[2][24] = {
+        { 0, 1, 3, 4, 6, 15, 12, 14, 18, 24, 15, 44, 36, 26, 35, 40, 27, 34, 9,  19, 15, 21, 44, 69 },
+        { 0, 2, 5, 6, 3, 15, 9,  21, 9,  57, 45, 33, 81, 39, 63, 45, 27, 51, 27, 19, 25, 21, 66, 23 }};
     static uint8_t switcher = 0;
     int16_t j;
     if( samp_dir != 0.0
@@ -64,12 +68,14 @@ int32_t* make_music( int32_t* output
         osc_sine_time( &sine_struct[switcher]
                      , JUST_OFFSET
                        * just_pitch( ratios[switcher][0]
-                                   , ratios[switcher][1] )
+                                   , ilookup[0][ratios[switcher][0]] )
                      );
         osc_sine_time( &sine_struct[switcher+2]
                      , JUST_OFFSET
-                       * just_pitch( ratios[switcher][1]
+                       * just_pitch( ilookup[1][ratios[switcher][0]]
                                    , ratios[switcher][0] )
+                       //* just_pitch( ratios[switcher][1]
+                        //           , ilookup[1][ratios[switcher][1]] )
                      );
         switcher ^= 1;
     }
@@ -99,8 +105,8 @@ int32_t* make_music( int32_t* output
                           , ones
                           , zeroes2
                           , lpmod[j] );
-        mul_vf_f( lpmod[j], 0.2, lpmod[j], BLOCK_SIZE );
-        add_vf_f( lpmod[j], 0.3, lpmod[j], BLOCK_SIZE );
+        mul_vf_f( lpmod[j], 0.49, lpmod[j], BLOCK_SIZE );
+        add_vf_f( lpmod[j], 0.5, lpmod[j], BLOCK_SIZE );
     }
     for( j=0; j<4; j++ ){
         osc_sine_process_v( &sine_struct[j]
