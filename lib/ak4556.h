@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stm32f7xx.h>
+#include "bootloader.h"
 
 #define DSP_SAMPLE_RATE     48000
 #define DSP_BLOCK_SIZE		24
@@ -47,9 +48,11 @@
 
 void ak4556_Init( uint32_t s_rate );
 void ak4556_Start( void );
+void ak4556_Stop( void );
 void HAL_SAI_MspInit(SAI_HandleTypeDef *hsai);
 // void DMA2_Stream1_IRQHandler(void);
 void DMA2_Stream5_IRQHandler(void);
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai);
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai);
 
+void dsp_clear_buffer( void );

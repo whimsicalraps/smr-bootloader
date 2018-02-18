@@ -128,6 +128,12 @@ void ak4556_Start( void )
 	}
 }
 
+void ak4556_Stop( void )
+{
+    HAL_SAI_DMAStop( &SaiHandle );
+    HAL_SAI_DMAStop( &SaiHandle2 );
+}
+
 void HAL_SAI_MspInit(SAI_HandleTypeDef *hsai)
 {
 	GPIO_InitTypeDef  GPIO_Init;
@@ -258,4 +264,11 @@ void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai)
 	DSP_Block_Process(&inBuff[DSP_BLOCK_SIZE], &outBuff[DSP_BLOCK_SIZE], DSP_BLOCK_SIZE);
 	Debug_HW_set(led_x, 0);
 	Debug_HW_set(bm_1, 0);
+}
+
+void dsp_clear_buffer( void )
+{
+    for( uint16_t i=0; i<DSP_BLOCK_SIZE*2; i++ ){
+        outBuff[i] = 0;
+    }
 }

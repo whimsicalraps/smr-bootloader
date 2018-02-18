@@ -89,6 +89,12 @@ void init_audio_in( void )
     init_music_maker();
 }
 
+void deinit_audio_in( void )
+{
+    dsp_clear_buffer();
+    ak4556_Stop();
+}
+
 void Init( void )
 {
 	config_low_level();
