@@ -74,6 +74,7 @@ SRC = stm32f7xx_it.c \
 	$(WRLIB)/str_buffer.c \
 	$(WRLIB)/wrMath.c \
 	$(WRDSP)/wrOscSine.c \
+	$(WRDSP)/wrLpGate.c \
 
 
 OBJDIR = .
