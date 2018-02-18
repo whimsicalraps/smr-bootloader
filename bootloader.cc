@@ -294,7 +294,7 @@ int main( void )
 					++packet_index;
 					if( (packet_index % kPacketsPerBlock) == 0 ){
                         dsp_clear_buffer();
-                        ak4556_Stop();
+                        //ak4556_Stop();
                         set_ui( UI_STATE_WRITING );
 						ProgramPage( &current_address
 								   , recv_buffer
@@ -302,7 +302,7 @@ int main( void )
 								   );
 						decoder.Reset();
 						demodulator.Sync(); //FSK
-                        ak4556_Start();
+                        //ak4556_Start();
 					} else {
 						decoder.Reset(); //FSK
 					}
