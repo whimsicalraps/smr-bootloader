@@ -185,7 +185,8 @@ void set_ui( UiState s )
     led_sprite( s );
 }
 
-const int32_t in_threshold = 0x7FFFFFFF >> 5; //0v625 p2p (-10dBV less 3db)
+const int32_t in_threshold = 0x7FFFFFFF >> 6; //0v3125 p2p (-10dBV less 9db)
+    // immunity from 150mV of offset
 uint32_t discard_samples = 120000; //2.5s for DC pop on startup
 
 void DSP_Block_Process( __IO uint32_t* in_codec
