@@ -185,7 +185,7 @@ void set_ui( UiState s )
     led_sprite( s );
 }
 
-const int32_t in_threshold = 99999999; //8 nines = 1/3rd macbook
+const int32_t in_threshold = 0x7FFFFFFF >> 5; //0v625 p2p (-10dBV less 3db)
 uint32_t discard_samples = 120000; //2.5s for DC pop on startup
 
 void DSP_Block_Process( __IO int32_t* in_codec
