@@ -346,7 +346,7 @@ int main( void )
 	}
 
 StartApp:
-    while( !after_exit() ){;} // wait until nothing or factory reset
+    // while( !after_exit() ){;} // wait until nothing or factory reset
     DeInit();
 	JumpTo(kStartExecutionAddress);
 }
