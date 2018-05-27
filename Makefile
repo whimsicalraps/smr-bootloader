@@ -5,6 +5,7 @@ CUBE=../STM32_Cube_F7/Drivers
 HALS=$(CUBE)/STM32F7xx_HAL_Driver/Src
 WRLIB=../../wrLib
 WRDSP=../../wrDsp
+PRJ_DIR=wslash-bootloader
 
 CC=arm-none-eabi-gcc
 CXX= arm-none-eabi-g++
@@ -130,6 +131,14 @@ flash: $(BIN)
 Startup.o: $(STARTUP)
 	@$(CC) $(CFLAGS) $(C99) -c $< -o $@
 	@echo $@
+
+wav: fsk-wav
+
+fsk-wav: $(BIN)
+	export "PYTHONPATH=$$PYTHONPATH:'.'"
+	cd .. && python stm_audio_bootloader/fsk/encoder.py \
+		-s 48000 -b 16 -n 8 -z 4 -p 256 -g 16384 -k 1800 \
+		$(PRJ_DIR)/$(BIN)
 
 erase:
 	st-flash erase
